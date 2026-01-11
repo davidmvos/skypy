@@ -1,6 +1,9 @@
 # Test files
 test.py
 
+# Old File
+main.old.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
