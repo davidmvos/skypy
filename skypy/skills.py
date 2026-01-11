@@ -43,8 +43,8 @@ class Skill:
         
         Gets all the friendly names of the skills
         """
-        # TODO: Implement
-        raise NotImplementedError()
+        return [Skill.getAllSkills()[el]["name"] for el in Skill.getAllSkillKeys()]
+
     
     
     FARMING = "FARMING"
