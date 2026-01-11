@@ -1,1 +1,1 @@
-from skypy.main import skypy
+from skypy.main import *
