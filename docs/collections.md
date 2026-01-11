@@ -29,6 +29,8 @@ print(Collection.getAllCollectionKeys())
 This will output a list of all collection keys.
 
 ### Static Methods
+These are the static methods:
+
 | Name | Description |
 |-|-|
 | Collection.getAllCollections(updateCache:bool=False) | Gets all of the collection data. updateCache determines if the cache should be re-build |
