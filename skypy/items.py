@@ -10,7 +10,6 @@ class Item:
     def _updateCache():
         global _itemCache
         _itemCache = json.loads(requests.get("https://api.hypixel.net/v2/resources/skyblock/items").text)
-        print("Cache updated!")
     
     def getAllItems(upateCache:bool=False) -> list[dict[str:object]]:
         """
