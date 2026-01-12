@@ -1,51 +1,161 @@
-"""
+import json
+import requests
+import base64
+from typing import final
 
-FORMATS: 
-
-{
-    "material": "DIAMOND_SWORD",
-    "name": "Aspect of the End",
-    "category": "SWORD",
-    "tier": "RARE",
-    "stats": {
-    "DAMAGE": 100,
-    "STRENGTH": 100
-    },
-    "npc_sell_price": 56000,
-    "gemstone_slots": [
-    {
-        "slot_type": "SAPPHIRE"
-    }
-    ],
-    "can_have_power_scroll": true,
-    "museum_data": {
-    "donation_xp": 4,
-    "type": "WEAPONS",
-    "parent": {
-        "ASPECT_OF_THE_END": "ASPECT_OF_THE_VOID"
-    },
-    "mapped_item_ids": [],
-    "game_stage": "INTERMEDIATE"
-    },
-    "id": "ASPECT_OF_THE_END"
-},
-{
-    "material": "SKULL_ITEM",
-    "durability": 3,
-    "skin": {
-        "value": "ewogICJ0aW1lc3RhbXAiIDogMTYxNjg2NzgzMzE5NywKICAicHJvZmlsZUlkIiA6ICI1NjY3NWIyMjMyZjA0ZWUwODkxNzllOWM5MjA2Y2ZlOCIsCiAgInByb2ZpbGVOYW1lIiA6ICJUaGVJbmRyYSIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9lY2VkZGMyM2Y5ZDk2YmFhYTBkMmQ3YjllYzE4MGNkN2JlYTU0NDdkMzljNDI1Y2E5ZTQ0ZDg4MDhlYTExZWEwIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0=",
-        "signature": "HentEgHeiCpODujGfPM4aXa4gKYLRBMgKIf0JrKINNs666RwwLCReHexC3zNcNrDevaqD1grxGHeGIDm2jcWCKrayDW2TBlo6jogzaxRYkbvFHwh2xvor00TYF9/AFMQRsm7eHqya90kogERg09NMlyTq9vnIgpflp6YYy04Qy5yecREJj42hWVkULVtfDik7QCG1IV66qVLf8FzB7vm5VUz6z9qWKYTHoZ+8P8x8fPC4oobtOuzphUeZ3EaoS3MCuJFkftxqComT30qdYF5kAd6ikyktsn1fwGWpbaLZKTR8mCjyr6/BtDXGws+DUasT8zP1kQVciKCXJOGstoH5nqwD09740QDUVerD3DqrTwylyJjGtxUHlhr5wTwezeNsQIOpi9VIZUZCqhhlsmrKjkElGSb9EExRHxVjJLFocui0sfiCUamOlE+vxFnxcfq4L7DBt59OXGNUtchVm6x60KsDxz5RicwRCLZLMfLCVEFMNcLJwMkW+zU7HWwmao2AWyvQuZpU091rTiypmYRnVJyj32cHYlUTzp9akluf9mS/9JqAY5T+dWQR0GghzeoruJ2f4/VOL9dCCTHkGO1Rt3vnhRLrdXs2eE8yw1KFUx5EnaoyYwM7d2BQSKT4i4CRuhMGVdmbzlenALMFgZeN5AzWT26RQT3Jwdh8s19PP0="
-    },
-    "name": "Easter Egg Minion Skin",
-    "category": "COSMETIC",
-    "museum": true,
-    "id": "EASTER_EGG_PERSONALITY"
-}
-
-URL: https://api.hypixel.net/v2/resources/skyblock/items
-
-"""
-
-
-class Item(NotImplemented):
-    raise NotImplementedError()
+class Item:
+    global _itemCache
+    _itemCache = None
+    
+    def _updateCache():
+        global _itemCache
+        _itemCache = json.loads(requests.get("https://api.hypixel.net/v2/resources/skyblock/items").text)
+        print("Cache updated!")
+    
+    def getAllItems(upateCache:bool=False) -> list[dict[str:object]]:
+        """
+        get all of the item data
+        """
+        global _itemCache
+        if upateCache or _itemCache == None:
+            Item._updateCache()
+        
+        return _itemCache["items"]
+    
+    def getAllItemKeys() -> list[str]:
+        """
+        Get all of the item IDs
+        """
+        return [el["id"] for el in Item.getAllItems()]
+    
+    def getAllItemNames() -> list[str]:
+        """
+        Get all of the item friendly names
+        """
+        return [el["name"] for el in Item.getAllItems()]
+    
+    def __init__(self, itemName:str):
+        self.itemName = itemName.upper()
+        
+        if self.itemName not in Item.getAllItemKeys():
+            raise KeyError(self.itemName)
+        
+        self.itemDataCache = None
+        
+        # Write cache
+        self.getItemData()
+        
+    def _getItemData(self) -> dict[str:object]:
+        """
+        Get item data for instanced item without using the cache. This has the time complexity of O(n) (with n=num items) because the array of items is not indexed.
+        """
+        foundElement = None
+        for el in Item.getAllItems():
+            if el["id"] == self.itemName:
+                foundElement = el
+                
+        assert foundElement != None # TODO: Add key error here
+        
+        return foundElement
+    
+    def getItemData(self) -> dict[str:object]:
+        """
+        Get the data of the instanced item (in O(1) time after initialization)
+        """
+        if self.itemDataCache == None:
+            self.itemDataCache = self._getItemData()
+        return self.itemDataCache
+    
+    def getMaterial(self) -> str:
+        """
+        Get the minecraft-id reepresentation of the material.
+        """
+        return self.getItemData()["material"]
+    
+    def getName(self) -> str:
+        """
+        Get the in-game friendly name of the item.
+        """
+        return self.getItemData()["name"]
+    
+    def getTier(self) -> str: # ["COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC", "SUPREME", "SPECIAL", "VERY_SPECIAL"]:
+        """
+        Gets the rarity tier (like uncommon)
+        """
+        return self.getItemData()["tier"]
+    
+    def getColor(self) -> str:
+        """
+        Gets the item's (name) color
+        """
+        return self.getItemData()["color"]
+    
+    def getSkinTextureUrl(self) -> str:
+        """
+        IF item is skull, will return a url to an image of the skull texture. 
+        
+        Will throw a ValueError if instanced item is not a skull.
+        """
+        decoded = base64.b64decode(self.getSkin()).decode("utf-8")
+        skinData = json.loads(decoded)
+        
+        return skinData["textures"]["SKIN"]["url"]
+    
+    def getSkin(self) -> str:
+        """
+        If item is skull, will get the base64 representation of the skin texture.
+        
+        Will throw a ValueError if instanced item is not a skull.
+        """
+        try:
+            return self.getItemData()["skin"]["value"]
+        except KeyError:
+            ex = TypeError(self.itemName)
+            ex.add_note("This item does not have a skull texture")
+            raise ex
+    
+    def getStats(self) -> dict[str:object]:
+        """
+        Get the stats of the item.
+        
+        Will throw a ValueError if instanced item des not have stats.
+        """
+        try:
+            return self.getItemData()["stats"]
+        except KeyError:
+            ex = TypeError(self.itemName)
+            ex.add_note("This item does not have any stats")
+            raise ex
+    
+    def getDamage(self) -> int:
+        """
+        Get the damage that this item deals.
+        
+        Will throw a ValueError if instanced item des not deal damage.
+        """
+        try:
+            return int(self.getStats()["DAMAGE"])
+        except KeyError:
+            ex = TypeError(self.itemName)
+            ex.add_note("This item does not deal any damage")
+            raise ex
+    
+    def getStrength(self) -> int:
+        """
+        Gets the strength of the item.
+        
+        Will throw a ValueError if instanced item des not have a strength.
+        """
+        try:
+            return int(self.getStats()["STRENGTH"])
+        except KeyError:
+            ex = TypeError(self.itemName)
+            ex.add_note("This item does not have any strength")
+            raise ex
+        
+        
+    
+    
+    
+    
+    
