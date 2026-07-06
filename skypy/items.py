@@ -33,11 +33,12 @@ class Item:
         """
         return [el["name"] for el in Item.getAllItems()]
     
-    def __init__(self, itemName:str):
+    def __init__(self, itemName:str, checkName:bool=True):
         self.itemName = itemName.upper()
         
-        if self.itemName not in Item.getAllItemKeys():
-            raise KeyError(self.itemName)
+        if checkName:
+            if self.itemName not in Item.getAllItemKeys():
+                raise KeyError(self.itemName)
         
         self.itemDataCache = None
         
